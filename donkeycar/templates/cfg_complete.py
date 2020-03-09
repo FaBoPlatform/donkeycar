@@ -25,7 +25,7 @@ DRIVE_LOOP_HZ = 20      # the vehicle loop will pause if faster than this speed.
 MAX_LOOPS = None        # the vehicle loop can abort after this many iterations, when given a positive integer.
 
 #CAMERA
-CAMERA_TYPE = "PICAM"   # (PICAM|WEBCAM|CVCAM|CSIC|V4L|MOCK)
+CAMERA_TYPE = "WEBCAM"   # (PICAM|WEBCAM|CVCAM|CSIC|V4L|MOCK)
 IMAGE_W = 160
 IMAGE_H = 120
 IMAGE_DEPTH = 3         # default RGB=3, make 1 for mono
@@ -42,15 +42,24 @@ PCA9685_I2C_BUSNUM = None   #None will auto detect, which is fine on the pi. But
 #DC_STEER_THROTTLE uses HBridge pwm to control one steering dc motor, and one drive wheel motor
 #DC_TWO_WHEEL uses HBridge pwm to control two drive motors, one on the left, and one on the right.
 #SERVO_HBRIDGE_PWM use ServoBlaster to output pwm control from the PiZero directly to control steering, and HBridge for a drive motor.
-DRIVE_TRAIN_TYPE = "SERVO_ESC" # SERVO_ESC|DC_STEER_THROTTLE|DC_TWO_WHEEL|SERVO_HBRIDGE_PWM
+#FABO_CAR use pca9685 for pwm servo and drv8830 motor driver for dc motor.
+DRIVE_TRAIN_TYPE = "FABO_CAR" # SERVO_ESC|DC_STEER_THROTTLE|DC_TWO_WHEEL|SERVO_HBRIDGE_PWM|FABO_CAR
 
-#STEERING
-STEERING_CHANNEL = 1            #channel on the 9685 pwm board 0-15
-STEERING_LEFT_PWM = 460         #pwm value for full left steering
-STEERING_RIGHT_PWM = 290        #pwm value for full right steering
+#PCA9685 STEERING
+PCA9685_FREQUENCY = 50          #SG90 is 50Hz.
+STEERING_CHANNEL = 0            #channel on the 9685 pwm board 0-15
+STEERING_LEFT_PWM = 200         #pwm value for full left steering
+STEERING_RIGHT_PWM = 400        #pwm value for full right steering
 
-#THROTTLE
-THROTTLE_CHANNEL = 0            #channel on the 9685 pwm board 0-15
+#DRV8830 THROTTLE
+DRV8830_I2C_ADDR = 0x64                  #left driver: 0x64, right driver: 0x65
+DRV8830_I2C_BUSNUM = 1
+DRV8830_THROTTLE_FORWARD_SPEED = 63      #range: 0 to 63.
+DRV8830_THROTTLE_STOPPED_SPEED = 0       #0 only.
+DRV8830_THROTTLE_REVERSE_SPEED = -63     #range: -63 to 0.
+
+#PCA9685 THROTTLE
+THROTTLE_CHANNEL = 1            #channel on the 9685 pwm board 0-15
 THROTTLE_FORWARD_PWM = 500      #pwm value for max forward throttle
 THROTTLE_STOPPED_PWM = 370      #pwm value for no movement
 THROTTLE_REVERSE_PWM = 220      #pwm value for max reverse throttle
@@ -81,14 +90,14 @@ MAX_EPOCHS = 100                #how many times to visit all records of your dat
 SHOW_PLOT = True                #would you like to see a pop up display of final loss?
 VEBOSE_TRAIN = True             #would you like to see a progress bar with text during training?
 USE_EARLY_STOP = True           #would you like to stop the training if we see it's not improving fit?
-EARLY_STOP_PATIENCE = 5         #how many epochs to wait before no improvement
+EARLY_STOP_PATIENCE = 10         #how many epochs to wait before no improvement
 MIN_DELTA = .0005               #early stop will want this much loss change before calling it improved.
 PRINT_MODEL_SUMMARY = True      #print layers and weights to stdout
 OPTIMIZER = None                #adam, sgd, rmsprop, etc.. None accepts default
 LEARNING_RATE = 0.001           #only used when OPTIMIZER specified
 LEARNING_RATE_DECAY = 0.0       #only used when OPTIMIZER specified
 SEND_BEST_MODEL_TO_PI = False   #change to true to automatically send best model during training
-CACHE_IMAGES = True             #keep images in memory. will speed succesive epochs, but crater if not enough mem.
+CACHE_IMAGES = False             #keep images in memory. will speed succesive epochs, but crater if not enough mem.
 
 PRUNE_CNN = False               #This will remove weights from your model. The primary goal is to increase performance.
 PRUNE_PERCENT_TARGET = 75       # The desired percentage of pruning.
@@ -119,10 +128,10 @@ NUM_LAST_LAYERS_TO_TRAIN = 7        #when freezing layers, how many layers from 
 
 #JOYSTICK
 USE_JOYSTICK_AS_DEFAULT = False     #when starting the manage.py, when True, will not require a --js option to use the joystick
-JOYSTICK_MAX_THROTTLE = 0.5         #this scalar is multiplied with the -1 to 1 throttle value to limit the maximum throttle. This can help if you drop the controller or just don't need the full speed available.
+JOYSTICK_MAX_THROTTLE = 1.0         #this scalar is multiplied with the -1 to 1 throttle value to limit the maximum throttle. This can help if you drop the controller or just don't need the full speed available.
 JOYSTICK_STEERING_SCALE = 1.0       #some people want a steering that is less sensitve. This scalar is multiplied with the steering -1 to 1. It can be negative to reverse dir.
 AUTO_RECORD_ON_THROTTLE = True      #if true, we will record whenever throttle is not zero. if false, you must manually toggle recording with some other trigger. Usually circle button on joystick.
-CONTROLLER_TYPE='ps3'               #(ps3|ps4|xbox|nimbus|wiiu|F710|rc3)
+CONTROLLER_TYPE='F710'              #(ps3|ps4|xbox|nimbus|wiiu|F710|rc3)
 USE_NETWORKED_JS = False            #should we listen for remote joystick control over the network?
 NETWORK_JS_SERVER_IP = "192.168.0.1"#when listening for network joystick control, which ip is serving this information
 JOYSTICK_DEADZONE = 0.0             # when non zero, this is the smallest throttle before recording triggered.

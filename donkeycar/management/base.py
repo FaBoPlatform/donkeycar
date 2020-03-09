@@ -175,7 +175,7 @@ class CalibrateCar(BaseCommand):
         parser.add_argument('--channel', help="The channel you'd like to calibrate [0-15]")
         parser.add_argument('--address', default='0x40', help="The i2c address you'd like to calibrate [default 0x40]")
         parser.add_argument('--bus', default=None, help="The i2c bus you'd like to calibrate [default autodetect]")
-        parser.add_argument('--pwmFreq', default=60, help="The frequency to use for the PWM")
+        parser.add_argument('--pwmFreq', default=50, help="The frequency to use for the PWM")
         parsed_args = parser.parse_args(args)
         return parsed_args
 

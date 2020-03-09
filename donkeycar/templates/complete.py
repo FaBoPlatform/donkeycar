@@ -501,6 +501,22 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None, camera_type
         V.add(steering, inputs=['angle'])
         V.add(motor, inputs=["throttle"])
 
+    elif cfg.DRIVE_TRAIN_TYPE == "FABO_CAR":
+        from donkeycar.parts.actuator import PCA9685, PWMSteering, DRV8830, DCThrottle
+
+        steering_controller = PCA9685(cfg.STEERING_CHANNEL, cfg.PCA9685_I2C_ADDR, frequency=cfg.PCA9685_FREQUENCY, busnum=cfg.PCA9685_I2C_BUSNUM)
+        steering = PWMSteering(controller=steering_controller,
+                                        left_pulse=cfg.STEERING_LEFT_PWM,
+                                        right_pulse=cfg.STEERING_RIGHT_PWM)
+
+        throttle_controller = DRV8830(cfg.DRV8830_I2C_ADDR, busnum=cfg.DRV8830_I2C_BUSNUM)
+        throttle = DCThrottle(controller=throttle_controller,
+                                        max_speed=cfg.DRV8830_THROTTLE_FORWARD_SPEED,
+                                        zero_speed=cfg.DRV8830_THROTTLE_STOPPED_SPEED,
+                                        min_speed=cfg.DRV8830_THROTTLE_REVERSE_SPEED)
+
+        V.add(steering, inputs=['angle'])
+        V.add(throttle, inputs=['throttle'])
     
     #add tub to save data
 

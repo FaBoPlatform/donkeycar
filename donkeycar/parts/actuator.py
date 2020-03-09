@@ -164,6 +164,40 @@ class JHatReader:
         self.running = False
         time.sleep(0.1)
 
+class DRV8830:
+    ''' 
+    DC motor controler using DRV8830 chip. 
+    This is used for tamiya craft motor series.
+    '''
+    def __init__(self, address=0x64, busnum=None, init_delay=0.1):
+
+        from donkeycar.fabo.drv8830 import DRV8830
+        # Initialise the DRV8830 using the default address (0x64).
+        if busnum is not None:
+            import pkg_resources
+            SMBUS='smbus'
+            for dist in pkg_resources.working_set:
+            #print(dist.project_name, dist.version)
+                if dist.project_name == 'smbus':
+                    break
+                if dist.project_name == 'smbus2':
+                    SMBUS='smbus2'
+                    break
+                if SMBUS == 'smbus':
+                    import smbus
+                elif SMBUS == 'smbus2':
+                    import smbus2 as smbus
+        self.throttle = DRV8830(busnum=busnum, motor_address=address)
+        time.sleep(init_delay)
+
+    def set_speed(self, speed):
+        try:
+            self.throttle.set_speed(speed)
+        except:
+            self.throttle.set_speed(speed)
+
+    def run(self, speed):
+        self.set_speed(speed)
 
 class PWMSteering:
     """
@@ -237,6 +271,49 @@ class PWMThrottle:
     def shutdown(self):
         self.run(0) #stop vehicle
 
+
+class DCThrottle:
+    """
+    Wrapper over a DC motor cotnroller to convert -1 to 1 throttle
+    values to drv8830 values.
+    """
+    MIN_THROTTLE = -1
+    MAX_THROTTLE =  1
+
+    def __init__(self, controller=None,
+                       max_speed=63,
+                       min_speed=-63,
+                       zero_speed=0):
+
+        self.controller = controller
+        self.max_speed = max_speed
+        self.min_speed = min_speed
+        self.zero_speed = zero_speed
+
+        #send zero speed to calibrate Motor
+        print("Init Motor")
+        self.controller.set_speed(self.max_speed)
+        time.sleep(0.01)
+        self.controller.set_speed(self.min_speed)
+        time.sleep(0.01)
+        self.controller.set_speed(self.zero_speed)
+        time.sleep(1)
+
+
+    def run(self, throttle):
+        if throttle > 0:
+            speed = dk.utils.map_range(throttle,
+                                    0, self.MAX_THROTTLE, 
+                                    self.zero_speed, self.max_speed)
+        else:
+            speed = dk.utils.map_range(throttle,
+                                    self.MIN_THROTTLE, 0, 
+                                    self.min_speed, self.zero_speed)
+
+        self.controller.set_speed(speed)
+        
+    def shutdown(self):
+        self.run(0) #stop vehicle
 
 
 class Adafruit_DCMotor_Hat:
